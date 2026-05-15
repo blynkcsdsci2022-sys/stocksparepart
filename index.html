@@ -165,7 +165,7 @@
 <!-- DASHBOARD -->
 <div id="dashboard-page">
   <div class="topbar">
-    <div class="topbar-brand"><span>📦</span> Stock Spare Part</div>
+    <div class="topbar-brand"><span>📦</span> StockTrack</div>
     <div class="topbar-dot"></div>
     <div class="topbar-right">
       <span class="status-badge" id="status-badge">กำลังโหลด...</span>
@@ -268,6 +268,8 @@
     <!-- STAT CARDS -->
     <div class="stats-row">
       <div class="stat-card blue"><div class="stat-label">รายการทั้งหมด</div><div class="stat-val" id="stat-total">—</div><div class="stat-sub" id="stat-updated">อัพเดทล่าสุด: —</div></div>
+      <div class="stat-card green"><div class="stat-label">รับสินค้า (ครั้ง)</div><div class="stat-val" id="stat-receive">—</div><div class="stat-sub" id="stat-receive-qty">จำนวนรวม: —</div></div>
+      <div class="stat-card red"><div class="stat-label">เบิกสินค้า (ครั้ง)</div><div class="stat-val" id="stat-issue">—</div><div class="stat-sub" id="stat-issue-qty">จำนวนรวม: —</div></div>
       <div class="stat-card"><div class="stat-label">ประเภทสินค้า</div><div class="stat-val" id="stat-items">—</div><div class="stat-sub">รายการไม่ซ้ำ</div></div>
     </div>
 
@@ -276,6 +278,8 @@
       <input class="filter-input" type="text" id="filter-search" placeholder="🔍 ค้นหา รหัส / ชื่อ / ผู้ทำรายการ" oninput="applyFilters()">
       <select class="filter-select" id="filter-type" onchange="applyFilters()">
         <option value="">ทุกประเภท</option>
+        <option value="รับ">รับสินค้า</option>
+        <option value="เบิก">เบิกสินค้า</option>
       </select>
       <input class="filter-input" type="date" id="filter-date-from" onchange="applyFilters()" style="width:150px">
       <span style="font-size:13px;color:var(--text3)">ถึง</span>
