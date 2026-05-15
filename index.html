@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ระบบติดตามสต็อก</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f1117;
+    --bg2: #161b27;
+    --bg3: #1e2535;
+    --border: rgba(255,255,255,0.07);
+    --border2: rgba(255,255,255,0.13);
+    --text: #e8ecf4;
+    --text2: #8b93a8;
+    --text3: #555f72;
+    --accent: #4f8ef7;
+    --accent2: #3a7aed;
+    --green: #2dd4a4;
+    --green-bg: rgba(45,212,164,0.1);
+    --red: #f06577;
+    --red-bg: rgba(240,101,119,0.1);
+    --amber: #f5b942;
+    --amber-bg: rgba(245,185,66,0.1);
+    --radius: 10px;
+    --radius-lg: 14px;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'IBM Plex Sans Thai', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  /* ─── LOGIN ─── */
+  #login-page {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background:
+      radial-gradient(ellipse 60% 50% at 30% 20%, rgba(79,142,247,0.08) 0%, transparent 60%),
+      radial-gradient(ellipse 50% 40% at 80% 80%, rgba(45,212,164,0.06) 0%, transparent 60%),
+      var(--bg);
+  }
+  .login-card {
+    width: 380px;
+    background: var(--bg2);
+    border: 1px solid var(--border2);
+    border-radius: 20px;
+    padding: 44px 40px;
+  }
+  .login-logo {
+    display: flex; align-items: center; gap: 10px; margin-bottom: 32px;
+  }
+  .login-logo-icon {
+    width: 38px; height: 38px; border-radius: 10px;
+    background: linear-gradient(135deg, var(--accent), var(--green));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+  }
+  .login-logo-text { font-size: 17px; font-weight: 600; letter-spacing: -0.3px; }
+  .login-logo-sub { font-size: 12px; color: var(--text2); margin-top: 1px; }
+  .login-title { font-size: 22px; font-weight: 600; margin-bottom: 6px; }
+  .login-sub { font-size: 14px; color: var(--text2); margin-bottom: 28px; }
+  .field { margin-bottom: 16px; }
+  .field label { font-size: 12px; color: var(--text2); letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 7px; display: block; }
+  .field input {
+    width: 100%; padding: 11px 14px; background: var(--bg3);
+    border: 1px solid var(--border2); border-radius: var(--radius);
+    color: var(--text); font-family: inherit; font-size: 14px; outline: none;
+    transition: border-color 0.2s;
+  }
+  .field input:focus { border-color: var(--accent); }
+  .login-btn {
+    width: 100%; padding: 12px; background: var(--accent);
+    border: none; border-radius: var(--radius); color: white;
+    font-family: inherit; font-size: 15px; font-weight: 500;
+    cursor: pointer; transition: background 0.2s, transform 0.1s;
+    margin-top: 8px;
+  }
+  .login-btn:hover { background: var(--accent2); }
+  .login-btn:active { transform: scale(0.98); }
+  .login-err {
+    background: var(--red-bg); border: 1px solid rgba(240,101,119,0.3);
+    border-radius: var(--radius); padding: 10px 14px;
+    font-size: 13px; color: var(--red); margin-top: 14px; display: none;
+  }
+
+  /* ─── DASHBOARD ─── */
+  #dashboard-page { display: none; }
+  .topbar {
+    height: 58px; display: flex; align-items: center;
+    padding: 0 28px; border-bottom: 1px solid var(--border);
+    background: var(--bg); position: sticky; top: 0; z-index: 100;
+    gap: 20px;
+  }
+  .topbar-brand { font-size: 15px; font-weight: 600; display: flex; align-items: center; gap: 9px; }
+  .topbar-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(0.85)} }
+  .topbar-right { margin-left: auto; display: flex; align-items: center; gap: 16px; }
+  .status-badge {
+    font-size: 12px; padding: 4px 10px; border-radius: 20px;
+    background: var(--green-bg); color: var(--green);
+    border: 1px solid rgba(45,212,164,0.2); font-family: 'IBM Plex Mono', monospace;
+  }
+  .refresh-info { font-size: 12px; color: var(--text3); }
+  .logout-btn {
+    font-size: 13px; color: var(--text2); background: var(--bg3);
+    border: 1px solid var(--border2); border-radius: 8px;
+    padding: 6px 14px; cursor: pointer; font-family: inherit;
+    transition: color 0.2s, border-color 0.2s;
+  }
+  .logout-btn:hover { color: var(--text); border-color: var(--border2); }
+
+  .main { padding: 28px; max-width: 1300px; }
+
+  /* ─── SETUP BANNER ─── */
+  .setup-banner {
+    background: var(--amber-bg); border: 1px solid rgba(245,185,66,0.25);
+    border-radius: var(--radius-lg); padding: 18px 22px; margin-bottom: 24px;
+  }
+  .setup-banner h3 { font-size: 14px; font-weight: 500; color: var(--amber); margin-bottom: 10px; }
+  .setup-banner p { font-size: 13px; color: var(--text2); line-height: 1.7; }
+  .setup-banner code {
+    font-family: 'IBM Plex Mono', monospace; font-size: 12px;
+    background: rgba(0,0,0,0.3); padding: 2px 7px; border-radius: 4px; color: var(--text);
+  }
+  .setup-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 14px; }
+  .setup-fields input {
+    padding: 9px 12px; background: var(--bg3); border: 1px solid var(--border2);
+    border-radius: 8px; color: var(--text); font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px; outline: none; width: 100%; transition: border-color 0.2s;
+  }
+  .setup-fields input:focus { border-color: var(--accent); }
+  .setup-fields input::placeholder { color: var(--text3); }
+  .save-config-btn {
+    margin-top: 12px; padding: 9px 20px; background: var(--amber);
+    border: none; border-radius: 8px; color: #1a1200; font-family: inherit;
+    font-size: 13px; font-weight: 500; cursor: pointer; transition: opacity 0.2s;
+  }
+  .save-config-btn:hover { opacity: 0.88; }
+
+  /* ─── STAT CARDS ─── */
+  .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 24px; }
+  .stat-card {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: var(--radius-lg); padding: 20px 22px;
+  }
+  .stat-label { font-size: 12px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; }
+  .stat-val { font-size: 28px; font-weight: 600; font-family: 'IBM Plex Mono', monospace; letter-spacing: -1px; }
+  .stat-sub { font-size: 12px; color: var(--text3); margin-top: 6px; }
+  .stat-card.green .stat-val { color: var(--green); }
+  .stat-card.red .stat-val { color: var(--red); }
+  .stat-card.blue .stat-val { color: var(--accent); }
+
+  /* ─── FILTERS ─── */
+  .filters-row {
+    display: flex; gap: 10px; margin-bottom: 18px; flex-wrap: wrap; align-items: center;
+  }
+  .filter-input, .filter-select {
+    padding: 8px 13px; background: var(--bg2); border: 1px solid var(--border2);
+    border-radius: 8px; color: var(--text); font-family: inherit; font-size: 13px;
+    outline: none; transition: border-color 0.2s;
+  }
+  .filter-input:focus, .filter-select:focus { border-color: var(--accent); }
+  .filter-select option { background: var(--bg2); }
+  .filter-input { width: 200px; }
+  .filters-count { margin-left: auto; font-size: 13px; color: var(--text3); }
+
+  /* ─── TABLE ─── */
+  .table-wrap {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: var(--radius-lg); overflow: hidden;
+  }
+  table { width: 100%; border-collapse: collapse; }
+  thead th {
+    padding: 13px 16px; text-align: left; font-size: 11px; font-weight: 500;
+    color: var(--text3); text-transform: uppercase; letter-spacing: 0.6px;
+    border-bottom: 1px solid var(--border); white-space: nowrap;
+    cursor: pointer; user-select: none;
+  }
+  thead th:hover { color: var(--text2); }
+  thead th .sort-icon { opacity: 0.4; font-size: 10px; margin-left: 4px; }
+  thead th.sorted .sort-icon { opacity: 1; color: var(--accent); }
+  tbody tr {
+    border-bottom: 1px solid var(--border);
+    transition: background 0.1s;
+  }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: var(--bg3); }
+  tbody td {
+    padding: 12px 16px; font-size: 13px; color: var(--text);
+    white-space: nowrap;
+  }
+  .code-cell { font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--text2); }
+  .type-badge {
+    font-size: 11px; font-weight: 500; padding: 3px 10px;
+    border-radius: 20px; letter-spacing: 0.3px; white-space: nowrap;
+  }
+  .type-badge.receive { background: var(--green-bg); color: var(--green); border: 1px solid rgba(45,212,164,0.2); }
+  .type-badge.issue { background: var(--red-bg); color: var(--red); border: 1px solid rgba(240,101,119,0.2); }
+  .qty-receive { color: var(--green); font-family: 'IBM Plex Mono', monospace; font-size: 13px; font-weight: 500; }
+  .qty-issue { color: var(--red); font-family: 'IBM Plex Mono', monospace; font-size: 13px; font-weight: 500; }
+
+  /* ─── LOADING ─── */
+  .loading-state {
+    padding: 60px; text-align: center; color: var(--text3);
+    font-size: 14px; display: flex; flex-direction: column; align-items: center; gap: 14px;
+  }
+  .spinner {
+    width: 28px; height: 28px; border: 2px solid var(--border2);
+    border-top-color: var(--accent); border-radius: 50%; animation: spin 0.7s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .error-state {
+    padding: 40px; text-align: center; color: var(--red);
+    font-size: 14px;
+  }
+  .empty-state { padding: 50px; text-align: center; color: var(--text3); font-size: 14px; }
+
+  /* ─── PAGINATION ─── */
+  .pagination {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 20px; border-top: 1px solid var(--border);
+    font-size: 13px; color: var(--text2);
+  }
+  .page-btns { display: flex; gap: 6px; }
+  .page-btn {
+    width: 32px; height: 32px; border-radius: 7px;
+    background: var(--bg3); border: 1px solid var(--border2);
+    color: var(--text2); font-family: inherit; font-size: 13px;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    transition: background 0.1s, color 0.1s;
+  }
+  .page-btn:hover:not(:disabled) { background: var(--bg); color: var(--text); }
+  .page-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
+  .page-btn:disabled { opacity: 0.3; cursor: default; }
+
+  @media (max-width: 900px) {
+    .stats-row { grid-template-columns: repeat(2,1fr); }
+    .main { padding: 16px; }
+    .setup-fields { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════ LOGIN ══════════════════════ -->
+<div id="login-page">
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="login-logo-icon">📦</div>
+      <div>
+        <div class="login-logo-text">StockTrack</div>
+        <div class="login-logo-sub">ระบบติดตามสต็อก</div>
+      </div>
+    </div>
+    <div class="login-title">เข้าสู่ระบบ</div>
+    <div class="login-sub">กรุณากรอก Username และ Password</div>
+    <div class="field">
+      <label>Username</label>
+      <input type="text" id="username" placeholder="กรอก username" autocomplete="username">
+    </div>
+    <div class="field">
+      <label>Password</label>
+      <input type="password" id="password" placeholder="กรอก password" autocomplete="current-password">
+    </div>
+    <button class="login-btn" onclick="doLogin()">เข้าสู่ระบบ</button>
+    <div class="login-err" id="login-err">Username หรือ Password ไม่ถูกต้อง</div>
+  </div>
+</div>
+
+<!-- ══════════════════════ DASHBOARD ══════════════════════ -->
+<div id="dashboard-page">
+  <div class="topbar">
+    <div class="topbar-brand">
+      <span>📦</span> StockTrack
+    </div>
+    <div class="topbar-dot" title="เชื่อมต่อแล้ว"></div>
+    <div class="topbar-right">
+      <span class="status-badge" id="status-badge">กำลังโหลด...</span>
+      <span class="refresh-info" id="refresh-countdown">รีเฟรชใน —</span>
+      <button class="logout-btn" onclick="toggleSettings()" id="settings-btn">⚙️ ตั้งค่า</button>
+      <button class="logout-btn" onclick="doLogout()">ออกจากระบบ</button>
+    </div>
+  </div>
+
+  <div class="main">
+
+    <!-- SETUP BANNER -->
+    <div class="setup-banner" id="setup-banner" style="display:none">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <h3 style="margin:0">⚙️ ตั้งค่าการเชื่อมต่อ Google Sheets</h3>
+        <button onclick="toggleSettings()" style="background:none;border:none;color:var(--text2);font-size:20px;cursor:pointer;line-height:1">✕</button>
+      </div>
+      <p>กรอก <code>Spreadsheet ID</code> และ <code>API Key</code> เพื่อเชื่อมต่อกับ Google Sheet ของคุณ<br>
+      หา Spreadsheet ID ได้จาก URL: <code>docs.google.com/spreadsheets/d/<strong>SPREADSHEET_ID</strong>/edit</code><br>
+      สร้าง API Key ได้ที่ Google Cloud Console → Credentials → API Key (เปิดใช้ Sheets API)</p>
+      <div class="setup-fields">
+        <input type="text" id="cfg-sheetid" placeholder="Spreadsheet ID">
+        <input type="text" id="cfg-apikey" placeholder="Google API Key">
+        <input type="text" id="cfg-sheetname" placeholder="ชื่อ Sheet (เช่น Sheet1)" value="Sheet1">
+        <input type="number" id="cfg-interval" placeholder="รีเฟรชทุก (วินาที)" value="30" min="10">
+      </div>
+      <button class="save-config-btn" onclick="saveConfig()">💾 บันทึกและโหลดข้อมูล</button>
+    </div>
+
+    <!-- STAT CARDS -->
+    <div class="stats-row">
+      <div class="stat-card blue">
+        <div class="stat-label">รายการทั้งหมด</div>
+        <div class="stat-val" id="stat-total">—</div>
+        <div class="stat-sub" id="stat-updated">อัพเดทล่าสุด: —</div>
+      </div>
+      <div class="stat-card green">
+        <div class="stat-label">รับสินค้า (ครั้ง)</div>
+        <div class="stat-val" id="stat-receive">—</div>
+        <div class="stat-sub" id="stat-receive-qty">จำนวนรวม: —</div>
+      </div>
+      <div class="stat-card red">
+        <div class="stat-label">เบิกสินค้า (ครั้ง)</div>
+        <div class="stat-val" id="stat-issue">—</div>
+        <div class="stat-sub" id="stat-issue-qty">จำนวนรวม: —</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">ประเภทสินค้า</div>
+        <div class="stat-val" id="stat-items">—</div>
+        <div class="stat-sub">รายการไม่ซ้ำ</div>
+      </div>
+    </div>
+
+    <!-- FILTERS -->
+    <div class="filters-row">
+      <input class="filter-input" type="text" id="filter-search" placeholder="🔍 ค้นหา รหัส / ชื่อสินค้า / ผู้ทำรายการ" oninput="applyFilters()">
+      <select class="filter-select" id="filter-type" onchange="applyFilters()">
+        <option value="">ทุกประเภท</option>
+        <option value="รับ">รับสินค้า</option>
+        <option value="เบิก">เบิกสินค้า</option>
+      </select>
+      <input class="filter-input" type="date" id="filter-date-from" onchange="applyFilters()" style="width:150px">
+      <span style="font-size:13px;color:var(--text3)">ถึง</span>
+      <input class="filter-input" type="date" id="filter-date-to" onchange="applyFilters()" style="width:150px">
+      <button onclick="clearFilters()" style="padding:8px 14px;background:var(--bg3);border:1px solid var(--border2);border-radius:8px;color:var(--text2);font-family:inherit;font-size:13px;cursor:pointer;">ล้าง</button>
+      <span class="filters-count" id="filters-count"></span>
+    </div>
+
+    <!-- TABLE -->
+    <div class="table-wrap">
+      <div id="table-loading" class="loading-state">
+        <div class="spinner"></div>
+        <span>รอการตั้งค่า...</span>
+      </div>
+      <div id="table-error" class="error-state" style="display:none"></div>
+      <div id="table-container" style="display:none">
+        <table>
+          <thead>
+            <tr>
+              <th onclick="sortBy('date')" id="th-date">วันที่<span class="sort-icon" id="si-date">↕</span></th>
+              <th onclick="sortBy('code')" id="th-code">รหัสสินค้า<span class="sort-icon" id="si-code">↕</span></th>
+              <th onclick="sortBy('name')" id="th-name">ชื่อสินค้า<span class="sort-icon" id="si-name">↕</span></th>
+              <th onclick="sortBy('type')" id="th-type">ประเภท<span class="sort-icon" id="si-type">↕</span></th>
+              <th onclick="sortBy('qty')" id="th-qty">จำนวน<span class="sort-icon" id="si-qty">↕</span></th>
+              <th>หน่วย</th>
+              <th onclick="sortBy('user')" id="th-user">ผู้ทำรายการ<span class="sort-icon" id="si-user">↕</span></th>
+            </tr>
+          </thead>
+          <tbody id="table-body"></tbody>
+        </table>
+        <div id="table-empty" class="empty-state" style="display:none">ไม่พบข้อมูลที่ตรงกับเงื่อนไข</div>
+        <div class="pagination" id="pagination"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════
+//   CONFIG — แก้ไข Users และค่าเริ่มต้นตรงนี้
+// ══════════════════════════════════════════
+const USERS = [
+  { username: 'admin',   password: 'admin1234' },
+  { username: 'manager', password: 'mgr5678' },
+];
+
+// Column mapping (0-indexed จาก Google Sheet)
+// ปรับให้ตรงกับลำดับคอลัมน์ใน Sheet
+const COL = { date:0, code:1, name:2, type:3, qty:4, unit:5, user:6 };
+
+// ══════════════════════════════════════════
+//   STATE
+// ══════════════════════════════════════════
+let allData = [];
+let filtered = [];
+let currentPage = 1;
+const PAGE_SIZE = 20;
+let sortCol = 'date';
+let sortDir = -1; // -1 = desc
+let refreshTimer = null;
+let countdownTimer = null;
+let countdownSec = 30;
+let config = JSON.parse(localStorage.getItem('stock_config') || '{}');
+
+// ══════════════════════════════════════════
+//   LOGIN
+// ══════════════════════════════════════════
+function doLogin() {
+  const u = document.getElementById('username').value.trim();
+  const p = document.getElementById('password').value;
+  const match = USERS.find(x => x.username === u && x.password === p);
+  if (match) {
+    sessionStorage.setItem('stock_logged', '1');
+    document.getElementById('login-page').style.display = 'none';
+    document.getElementById('dashboard-page').style.display = 'block';
+    initDashboard();
+  } else {
+    document.getElementById('login-err').style.display = 'block';
+  }
+}
+document.getElementById('password').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
+document.getElementById('username').addEventListener('keydown', e => { if(e.key==='Enter') document.getElementById('password').focus(); });
+
+function doLogout() {
+  sessionStorage.removeItem('stock_logged');
+  clearInterval(refreshTimer);
+  clearInterval(countdownTimer);
+  document.getElementById('dashboard-page').style.display = 'none';
+  document.getElementById('login-page').style.display = 'flex';
+}
+
+if (sessionStorage.getItem('stock_logged')) {
+  document.getElementById('login-page').style.display = 'none';
+  document.getElementById('dashboard-page').style.display = 'block';
+  initDashboard();
+}
+
+// ══════════════════════════════════════════
+//   SETUP CONFIG
+// ══════════════════════════════════════════
+function initDashboard() {
+  if (config.sheetId && config.apiKey) {
+    startAutoRefresh();
+  } else {
+    document.getElementById('setup-banner').style.display = 'block';
+    document.getElementById('table-loading').querySelector('span').textContent = 'กรุณาตั้งค่าการเชื่อมต่อด้านบน';
+  }
+}
+
+function saveConfig() {
+  const id = document.getElementById('cfg-sheetid').value.trim();
+  const key = document.getElementById('cfg-apikey').value.trim();
+  if (!id || !key) { alert('กรุณากรอก Spreadsheet ID และ API Key'); return; }
+  config = {
+    sheetId: id,
+    apiKey: key,
+    sheetName: document.getElementById('cfg-sheetname').value.trim() || 'Sheet1',
+    interval: parseInt(document.getElementById('cfg-interval').value) || 30,
+  };
+  localStorage.setItem('stock_config', JSON.stringify(config));
+  document.getElementById('setup-banner').style.display = 'none';
+  startAutoRefresh();
+  document.getElementById('settings-btn').textContent = '⚙️ ตั้งค่า';
+}
+
+// ══════════════════════════════════════════
+//   AUTO REFRESH
+// ══════════════════════════════════════════
+function startAutoRefresh() {
+  fetchData();
+  const interval = (config.interval || 30) * 1000;
+  clearInterval(refreshTimer);
+  clearInterval(countdownTimer);
+  countdownSec = config.interval || 30;
+  refreshTimer = setInterval(() => {
+    fetchData();
+    countdownSec = config.interval || 30;
+  }, interval);
+  countdownTimer = setInterval(() => {
+    countdownSec--;
+    document.getElementById('refresh-countdown').textContent =
+      `รีเฟรชใน ${countdownSec}s`;
+    if (countdownSec <= 0) countdownSec = config.interval || 30;
+  }, 1000);
+}
+
+// ══════════════════════════════════════════
+//   FETCH FROM GOOGLE SHEETS API
+// ══════════════════════════════════════════
+async function fetchData() {
+  const badge = document.getElementById('status-badge');
+  badge.textContent = 'กำลังโหลด...';
+  badge.style.background = 'var(--amber-bg)';
+  badge.style.color = 'var(--amber)';
+  badge.style.borderColor = 'rgba(245,185,66,0.2)';
+
+  const sheetName = encodeURIComponent(config.sheetName || 'Sheet1');
+  const url = `https://sheets.googleapis.com/v4/spreadsheets/${config.sheetId}/values/${sheetName}?key=${config.apiKey}`;
+
+  try {
+    const res = await fetch(url);
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.error?.message || `HTTP ${res.status}`);
+    }
+    const data = await res.json();
+    const rows = (data.values || []).slice(1); // skip header row
+
+    allData = rows.map((r, i) => ({
+      id: i,
+      date: r[COL.date] || '',
+      code: r[COL.code] || '',
+      name: r[COL.name] || '',
+      type: r[COL.type] || '',
+      qty: parseFloat(String(r[COL.qty] || '0').replace(/,/g,'')) || 0,
+      unit: r[COL.unit] || '',
+      user: r[COL.user] || '',
+    }));
+
+    badge.textContent = 'เชื่อมต่อแล้ว';
+    badge.style.background = 'var(--green-bg)';
+    badge.style.color = 'var(--green)';
+    badge.style.borderColor = 'rgba(45,212,164,0.2)';
+
+    document.getElementById('table-error').style.display = 'none';
+    document.getElementById('table-container').style.display = 'block';
+    document.getElementById('table-loading').style.display = 'none';
+
+    updateStats();
+    applyFilters();
+
+  } catch(e) {
+    badge.textContent = 'ผิดพลาด';
+    badge.style.background = 'var(--red-bg)';
+    badge.style.color = 'var(--red)';
+    badge.style.borderColor = 'rgba(240,101,119,0.2)';
+
+    document.getElementById('table-loading').style.display = 'none';
+    const errDiv = document.getElementById('table-error');
+    errDiv.style.display = 'block';
+    errDiv.innerHTML = `⚠️ โหลดข้อมูลไม่ได้: ${e.message}<br>
+      <small style="color:var(--text3);font-size:12px;margin-top:8px;display:block">
+      ตรวจสอบ API Key, Spreadsheet ID และสิทธิ์การเข้าถึง Sheet</small>`;
+    console.error('Fetch error:', e);
+  }
+}
+
+// ══════════════════════════════════════════
+//   STATS
+// ══════════════════════════════════════════
+function updateStats() {
+  const now = new Date().toLocaleString('th-TH');
+  const receives = allData.filter(r => r.type.includes('รับ'));
+  const issues   = allData.filter(r => r.type.includes('เบิก'));
+  const uniqueItems = new Set(allData.map(r => r.code).filter(Boolean)).size;
+
+  document.getElementById('stat-total').textContent    = allData.length.toLocaleString();
+  document.getElementById('stat-updated').textContent  = `อัพเดทล่าสุด: ${now}`;
+  document.getElementById('stat-receive').textContent  = receives.length.toLocaleString();
+  document.getElementById('stat-receive-qty').textContent = `จำนวนรวม: ${receives.reduce((s,r)=>s+r.qty,0).toLocaleString()}`;
+  document.getElementById('stat-issue').textContent   = issues.length.toLocaleString();
+  document.getElementById('stat-issue-qty').textContent  = `จำนวนรวม: ${issues.reduce((s,r)=>s+r.qty,0).toLocaleString()}`;
+  document.getElementById('stat-items').textContent   = uniqueItems.toLocaleString();
+}
+
+// ══════════════════════════════════════════
+//   FILTER & SORT
+// ══════════════════════════════════════════
+function applyFilters() {
+  const q    = document.getElementById('filter-search').value.toLowerCase();
+  const type = document.getElementById('filter-type').value;
+  const from = document.getElementById('filter-date-from').value;
+  const to   = document.getElementById('filter-date-to').value;
+
+  filtered = allData.filter(r => {
+    if (q && !r.code.toLowerCase().includes(q) &&
+            !r.name.toLowerCase().includes(q) &&
+            !r.user.toLowerCase().includes(q)) return false;
+    if (type && !r.type.includes(type)) return false;
+    if (from && r.date < from) return false;
+    if (to   && r.date > to)   return false;
+    return true;
+  });
+
+  // sort
+  filtered.sort((a,b) => {
+    let va = a[sortCol], vb = b[sortCol];
+    if (sortCol === 'qty') return sortDir * (va - vb);
+    return sortDir * String(va).localeCompare(String(vb), 'th');
+  });
+
+  currentPage = 1;
+  document.getElementById('filters-count').textContent =
+    `แสดง ${filtered.length.toLocaleString()} / ${allData.length.toLocaleString()} รายการ`;
+  renderTable();
+  renderPagination();
+}
+
+function clearFilters() {
+  document.getElementById('filter-search').value = '';
+  document.getElementById('filter-type').value = '';
+  document.getElementById('filter-date-from').value = '';
+  document.getElementById('filter-date-to').value = '';
+  applyFilters();
+}
+
+function sortBy(col) {
+  if (sortCol === col) sortDir *= -1;
+  else { sortCol = col; sortDir = -1; }
+  document.querySelectorAll('thead th').forEach(th => th.classList.remove('sorted'));
+  document.getElementById('th-' + col)?.classList.add('sorted');
+  document.querySelectorAll('.sort-icon').forEach(s => s.textContent = '↕');
+  const si = document.getElementById('si-' + col);
+  if (si) si.textContent = sortDir === 1 ? '↑' : '↓';
+  applyFilters();
+}
+
+// ══════════════════════════════════════════
+//   RENDER TABLE
+// ══════════════════════════════════════════
+function renderTable() {
+  const body = document.getElementById('table-body');
+  const empty = document.getElementById('table-empty');
+  const start = (currentPage - 1) * PAGE_SIZE;
+  const pageData = filtered.slice(start, start + PAGE_SIZE);
+
+  if (filtered.length === 0) {
+    body.innerHTML = '';
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+
+  body.innerHTML = pageData.map(r => {
+    const isReceive = r.type.includes('รับ');
+    const isIssue   = r.type.includes('เบิก');
+    const qtyClass  = isReceive ? 'qty-receive' : isIssue ? 'qty-issue' : '';
+    const sign      = isReceive ? '+' : isIssue ? '−' : '';
+    const typeClass = isReceive ? 'receive' : isIssue ? 'issue' : '';
+    const typeLabel = isReceive ? '📥 รับสินค้า' : isIssue ? '📤 เบิกสินค้า' : r.type;
+    return `<tr>
+      <td>${r.date}</td>
+      <td class="code-cell">${r.code}</td>
+      <td>${r.name}</td>
+      <td><span class="type-badge ${typeClass}">${typeLabel}</span></td>
+      <td class="${qtyClass}">${sign}${r.qty.toLocaleString()}</td>
+      <td style="color:var(--text2);font-size:12px">${r.unit}</td>
+      <td style="color:var(--text2)">${r.user}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════════
+//   PAGINATION
+// ══════════════════════════════════════════
+function renderPagination() {
+  const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
+  const pg = document.getElementById('pagination');
+  if (totalPages <= 1) { pg.innerHTML = ''; return; }
+
+  const start = (currentPage - 1) * PAGE_SIZE + 1;
+  const end = Math.min(currentPage * PAGE_SIZE, filtered.length);
+
+  let pages = [];
+  for (let i = Math.max(1, currentPage-2); i <= Math.min(totalPages, currentPage+2); i++) pages.push(i);
+
+  pg.innerHTML = `
+    <span>แสดง ${start}–${end} จาก ${filtered.length.toLocaleString()} รายการ</span>
+    <div class="page-btns">
+      <button class="page-btn" onclick="goPage(${currentPage-1})" ${currentPage===1?'disabled':''}>‹</button>
+      ${pages.map(p => `<button class="page-btn ${p===currentPage?'active':''}" onclick="goPage(${p})">${p}</button>`).join('')}
+      <button class="page-btn" onclick="goPage(${currentPage+1})" ${currentPage===totalPages?'disabled':''}>›</button>
+    </div>`;
+}
+
+function goPage(p) {
+  const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
+  if (p < 1 || p > totalPages) return;
+  currentPage = p;
+  renderTable();
+  renderPagination();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ══════════════════════════════════════════
+//   TOGGLE SETTINGS PANEL
+// ══════════════════════════════════════════
+function toggleSettings() {
+  const banner = document.getElementById('setup-banner');
+  const isHidden = banner.style.display === 'none';
+  banner.style.display = isHidden ? 'block' : 'none';
+  if (isHidden && config.sheetId) {
+    document.getElementById('cfg-sheetid').value = config.sheetId || '';
+    document.getElementById('cfg-apikey').value = config.apiKey || '';
+    document.getElementById('cfg-sheetname').value = config.sheetName || 'Sheet1';
+    document.getElementById('cfg-interval').value = config.interval || 30;
+  }
+}
+</script>
+</body>
+</html>
